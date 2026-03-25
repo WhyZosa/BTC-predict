@@ -1,0 +1,14 @@
+Flask==3.1.2
+waitress==3.0.2
+httpx==0.28.1
+python-dotenv==1.1.1
+python-telegram-bot==22.3
+redis==6.2.0
+requests>=2.32.3
+joblib>=1.4.2
+numpy>=2.2.0
+pandas>=2.2.3
+catboost>=1.2.8
+transformers>=4.52.4
+safetensors>=0.5.3
+torch>=2.7.0

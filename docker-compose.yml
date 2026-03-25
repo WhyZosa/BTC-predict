@@ -1,0 +1,22 @@
+services:
+  api:
+    build: .
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  bot:
+    build: .
+    command: ["python", "-m", "bot.bot"]
+    env_file:
+      - .env
+    depends_on:
+      - api

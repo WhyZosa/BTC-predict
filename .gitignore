@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.pytest_cache/
+artifacts/
+data/
+dist/
+build/
+*.log
+*.pid
+tools/
+Copy-Item
+cd
+python

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BTC Forecast</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js"></script>
+  </head>
+  <body>
+    <div class="background-glow glow-a"></div>
+    <div class="background-glow glow-b"></div>
+
+    <main class="app-shell">
+      <section class="hero">
+        <div>
+          <h1>BTC Forecast</h1>
+        </div>
+        <div class="hero-badge">
+          <span class="badge-label">Обновление</span>
+          <strong id="refreshRate">каждые 15 сек</strong>
+        </div>
+      </section>
+
+      <section class="stats-grid">
+        <article class="stat-card accent">
+          <span>BTC/USD</span>
+          <strong id="currentPrice">$ --</strong>
+          <small>Текущая цена</small>
+        </article>
+        <article class="stat-card">
+          <span>24H</span>
+          <strong id="change24h">--</strong>
+          <small>Изменение за сутки</small>
+        </article>
+        <article class="stat-card">
+          <span>Источник</span>
+          <strong id="sourceName">--</strong>
+          <small>Поставщик данных</small>
+        </article>
+      </section>
+
+      <section class="panel chart-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-title">График BTC</p>
+            <p class="panel-subtitle">Последние 168 часов</p>
+          </div>
+          <button id="refreshButton" class="ghost-button">Обновить</button>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="priceChart"></canvas>
+        </div>
+        <div class="chart-meta">
+          <p class="chart-hint">Нажми на график, чтобы посмотреть цену и время точки.</p>
+          <div id="chartFocus" class="chart-focus hidden">
+            <span id="chartFocusTime">--</span>
+            <strong id="chartFocusPrice">$ --</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel controls-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-title">Прогноз цены</p>
+            <p class="panel-subtitle">Выбери горизонт</p>
+          </div>
+        </div>
+        <div class="horizon-grid">
+          <button class="horizon-button" data-horizon="6h">6 часов</button>
+          <button class="horizon-button" data-horizon="1d">1 день</button>
+          <button class="horizon-button" data-horizon="1w">1 неделя</button>
+        </div>
+
+        <div id="predictionCard" class="prediction-card hidden">
+          <div class="prediction-header">
+            <div>
+              <p id="predictionHorizon" class="prediction-horizon">Прогноз</p>
+              <p id="predictionTarget" class="prediction-target">--</p>
+              <strong id="predictionPrice">$ --</strong>
+            </div>
+            <span id="predictionDelta" class="prediction-delta">--</span>
+          </div>
+
+          <div class="prediction-grid">
+            <div>
+              <span>Текущая цена</span>
+              <strong id="predictionCurrent">$ --</strong>
+            </div>
+            <div>
+              <span>Ожидаемое время</span>
+              <strong id="predictionTime">--</strong>
+            </div>
+            <div>
+              <span>Примерный диапазон</span>
+              <strong id="predictionInterval">--</strong>
+            </div>
+            <div>
+              <span>Изменение</span>
+              <strong id="predictionDeltaText">--</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel alerts-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-title">Уведомления</p>
+            <p class="panel-subtitle">Сообщение в Telegram, если BTC выйдет выше цены или упадет на заданный процент</p>
+          </div>
+        </div>
+
+        <div class="alerts-form">
+          <label class="field">
+            <span>Тип алерта</span>
+            <select id="alertKind">
+              <option value="above_price">Цена выше X</option>
+              <option value="below_price">Цена ниже X</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Значение</span>
+            <input id="alertValue" type="number" min="0.1" step="0.1" placeholder="Например 95000 или 3" />
+          </label>
+
+          <button id="createAlertButton" class="primary-button">Создать алерт</button>
+        </div>
+
+        <p id="alertPreview" class="alert-preview">--</p>
+        <div id="alertsList" class="alerts-list"></div>
+      </section>
+
+      <section class="panel history-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-title">История прогнозов</p>
+            <p class="panel-subtitle">Когда был сделан прогноз и что получилось после наступления горизонта</p>
+          </div>
+          <button id="exportHistoryButton" class="ghost-button">Экспорт CSV</button>
+        </div>
+        <div id="historyList" class="history-list"></div>
+      </section>
+
+      <section class="panel quality-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-title">Качество модели</p>
+            <p class="panel-subtitle">Сравнение бэктеста по модели и фактической истории прогнозов пользователя</p>
+          </div>
+        </div>
+        <div id="qualityOverall" class="quality-overall"></div>
+        <div id="qualityHorizons" class="quality-grid"></div>
+      </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
